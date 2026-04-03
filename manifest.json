@@ -1,8 +1,9 @@
 {
   "name": "Revision Quiz",
   "short_name": "RevQuiz",
-  "start_url": "./",
-  "scope": "./",
+  "id": "/IPS/",
+  "start_url": "./index.html",
+  "scope": "/IPS/",
   "display": "standalone",
   "background_color": "#f4f6f8",
   "theme_color": "#111214",
