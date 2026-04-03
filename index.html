@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .screen {
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      position: relative;
+      transition: opacity 0.25s ease, transform 0.25s ease, background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .fading-out {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: #e0e0e0;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.08s ease, background 0.2s ease, opacity 0.2s ease;
+      font-size: 16px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover {
+      background: #d5d5d5;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .center-btn {
+      text-align: center;
+    }
+
+    .correct {
+      background: #4caf50 !important;
+      color: white;
+    }
+
+    .wrong {
+      background: #f44336 !important;
+      color: white;
+    }
+
+    #menu-btn {
+      display: none;
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #6c757d;
+      color: white;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #menu-btn:active {
+      transform: scale(0.98);
+    }
+
+    #restart-btn,
+    #hardmode-continue-btn {
+      display: none;
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #restart-btn:active,
+    #hardmode-continue-btn:active {
+      transform: scale(0.98);
+    }
+
+    #hardmode-continue-btn {
+      display: block;
+    }
+
+    .progress-container {
+      background: #ddd;
+      border-radius: 5px;
+      height: 10px;
+      margin: 10px 0 15px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: #007bff;
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+
+    #hardmode-intro {
+      background: linear-gradient(180deg, #1f1f24 0%, #111214 100%);
+      color: #f3f3f3;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    #hardmode-intro h2 {
+      color: #ffffff;
+      margin-top: 0;
+      letter-spacing: 0.5px;
+    }
+
+    #hardmode-intro-text {
+      font-size: 20px;
+      line-height: 1.6;
+      margin: 10px 0 20px;
+      color: #f5f5f5;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.35);
+    }
+
+    #hardmode-continue-btn {
+      background: #2f6fed;
+      color: white;
+    }
+
+    #hardmode-continue-btn:hover {
+      background: #255fd0;
+    }
+
+    .hardmode-stage-0 {
+      background: linear-gradient(180deg, #1e1f22 0%, #141518 100%) !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28) !important;
+    }
+
+    .hardmode-stage-1 {
+      background: linear-gradient(180deg, #18191d 0%, #0f1013 100%) !important;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.38) !important;
+    }
+
+    .hardmode-stage-2 {
+      background: linear-gradient(180deg, #121317 0%, #090a0c 100%) !important;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.48) !important;
+    }
+
+    #result-message {
+      min-height: 48px;
+      margin-top: 12px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #444;
+    }
+
+    #best-score {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    #menu-status {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+      min-height: 20px;
+    }
+
+    @keyframes shake {
+      0%   { transform: translate(0, 0); }
+      20%  { transform: translate(var(--shake-x), calc(var(--shake-y) * -1)); }
+      40%  { transform: translate(calc(var(--shake-x) * -1), var(--shake-y)); }
+      60%  { transform: translate(var(--shake-x), var(--shake-y)); }
+      80%  { transform: translate(calc(var(--shake-x) * -1), calc(var(--shake-y) * -1)); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .shake {
+      animation: shake var(--shake-speed, 0.4s) infinite;
+      will-change: transform;
+    }
+
+    #flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 0, 0, 0);
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .flash-red {
+      animation: redFlash 0.4s ease-out;
+    }
+
+    @keyframes redFlash {
+      0% { background: rgba(255, 0, 0, 0); }
+      35% { background: rgba(255, 0, 0, 0.3); }
+      100% { background: rgba(255, 0, 0, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="flash-overlay"></div>
+
+  <div id="menu" class="screen">
+    <h2>Select Mode</h2>
+    <button class="btn" id="normal-mode" disabled>Normal Mode (5s)</button>
+    <button class="btn" id="hard-mode" disabled>Hard Mode (3s, sudden death)</button>
+    <div id="menu-status">Loading quiz data...</div>
+  </div>
+
+  <div id="hardmode-intro" class="screen hidden">
+    <h2>Hard Mode</h2>
+    <p id="hardmode-intro-text">You're on IPS and hear footsteps approaching...</p>
+    <button class="btn center-btn" id="hardmode-continue-btn">Continue</button>
+  </div>
+
+  <div class="screen hidden" id="quiz-container">
+    <h2 id="question">Loading...</h2>
+    <p id="progress"></p>
+    <p id="score">Score: 0</p>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div id="answers"></div>
+    <div id="result-message"></div>
+    <div id="best-score"></div>
+    <button id="menu-btn">Main Menu</button>
+    <button id="restart-btn">Back to Menu</button>
+  </div>
+
+  <script>
+    let questions = [];
+    let answerPool = [];
+
+    let currentQuestionIndex = 0;
+    let shuffledQuestions = [];
+    let score = 0;
+
+    let mode = "normal";
+    let timePerQuestion = 5;
+    let progressInterval;
+    let appState = "loading";
+    let dataLoaded = false;
+
+    let hardModeIntroStep = 0;
+    const hardModeIntroMessages = [
+      "You're on IPS and hear footsteps approaching...",
+      "A manager is now watching you...",
+      "Time to go fast! No mistakes!"
+    ];
+
+    const hardModeStages = [
+      {
+        className: "hardmode-stage-0",
+        shake: false,
+        bpm: 0
+      },
+      {
+        className: "hardmode-stage-1",
+        shake: true,
+        shakeX: "2px",
+        shakeY: "2px",
+        shakeSpeed: "0.42s",
+        bpm: 68
+      },
+      {
+        className: "hardmode-stage-2",
+        shake: true,
+        shakeX: "4px",
+        shakeY: "4px",
+        shakeSpeed: "0.26s",
+        bpm: 102
+      }
+    ];
+
+    let audioContext = null;
+    let heartbeatInterval = null;
+
+    const questionElement = document.getElementById("question");
+    const answersElement = document.getElementById("answers");
+    const scoreElement = document.getElementById("score");
+    const progressElement = document.getElementById("progress");
+    const restartBtn = document.getElementById("restart-btn");
+    const menuBtn = document.getElementById("menu-btn");
+    const progressBar = document.getElementById("progress-bar");
+    const resultMessage = document.getElementById("result-message");
+    const bestScoreElement = document.getElementById("best-score");
+
+    const menu = document.getElementById("menu");
+    const menuStatus = document.getElementById("menu-status");
+    const normalModeBtn = document.getElementById("normal-mode");
+    const hardModeBtn = document.getElementById("hard-mode");
+
+    const quizContainer = document.getElementById("quiz-container");
+
+    const hardModeIntro = document.getElementById("hardmode-intro");
+    const hardModeIntroText = document.getElementById("hardmode-intro-text");
+    const hardModeContinueBtn = document.getElementById("hardmode-continue-btn");
+
+    const flashOverlay = document.getElementById("flash-overlay");
+
+    fetch("data.json")
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Failed to load data.json");
+        }
+        return res.json();
+      })
+      .then(data => {
+        questions = data.questions || [];
+        answerPool = data.answerPool || [];
+
+        if (!questions.length || !answerPool.length) {
+          throw new Error("Quiz data is empty.");
+        }
+
+        dataLoaded = true;
+        appState = "menu";
+        normalModeBtn.disabled = false;
+        hardModeBtn.disabled = false;
+        menuStatus.innerText = "Ready to play.";
+      })
+      .catch(err => {
+        console.error("Error loading data:", err);
+        appState = "error";
+        menuStatus.innerText = "Failed to load quiz data.";
+      });
+
+    normalModeBtn.addEventListener("click", () => {
+      if (!dataLoaded) return;
+      mode = "normal";
+      timePerQuestion = 5;
+      stopHeartbeat();
+      startGame();
+    });
+
+    hardModeBtn.addEventListener("click", async () => {
+      if (!dataLoaded) return;
+      mode = "hard";
+      timePerQuestion = 3;
+      await initAudio();
+      triggerRedFlashThenIntro();
+    });
+
+    hardModeContinueBtn.addEventListener("click", () => {
+      hardModeIntroStep++;
+
+      if (hardModeIntroStep < hardModeIntroMessages.length) {
+        hardModeIntroText.innerText = hardModeIntroMessages[hardModeIntroStep];
+        applyHardModeStage(hardModeIntroStep);
+      } else {
+        stopHeartbeat();
+        hardModeIntro.classList.remove("shake");
+        switchScreen(hardModeIntro, null, () => {
+          hardModeIntro.classList.add("hidden");
+          startGame();
+        });
+      }
+    });
+
+    async function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+    }
+
+    function playHeartbeatBeat(strength = 1) {
+      if (!audioContext) return;
+
+      const now = audioContext.currentTime;
+
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const filter = audioContext.createBiquadFilter();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(48, now);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(110, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.1 * strength, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+
+    function playHeartbeatPattern() {
+      if (!audioContext) return;
+      playHeartbeatBeat(1);
+      setTimeout(() => playHeartbeatBeat(0.7), 180);
+    }
+
+    function startHeartbeat(bpm) {
+      stopHeartbeat();
+      if (!bpm || bpm <= 0) return;
+
+      playHeartbeatPattern();
+
+      const intervalMs = (60 / bpm) * 1000;
+      heartbeatInterval = setInterval(() => {
+        playHeartbeatPattern();
+      }, intervalMs);
+    }
+
+    function stopHeartbeat() {
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+    }
+
+    function clearHardModeStageClasses() {
+      hardModeIntro.classList.remove("hardmode-stage-0", "hardmode-stage-1", "hardmode-stage-2");
+    }
+
+    function applyHardModeStage(level) {
+      const stage = hardModeStages[level] || hardModeStages[hardModeStages.length - 1];
+
+      clearHardModeStageClasses();
+      hardModeIntro.classList.add(stage.className);
+
+      if (stage.shake) {
+        hardModeIntro.style.setProperty("--shake-x", stage.shakeX);
+        hardModeIntro.style.setProperty("--shake-y", stage.shakeY);
+        hardModeIntro.style.setProperty("--shake-speed", stage.shakeSpeed);
+        hardModeIntro.classList.add("shake");
+      } else {
+        hardModeIntro.classList.remove("shake");
+      }
+
+      startHeartbeat(stage.bpm);
+    }
+
+    function triggerRedFlashThenIntro() {
+      appState = "hard-flash";
+      flashOverlay.classList.remove("flash-red");
+      void flashOverlay.offsetWidth;
+      flashOverlay.classList.add("flash-red");
+
+      setTimeout(() => {
+        startHardModeIntro();
+      }, 350);
+    }
+
+    function startHardModeIntro() {
+      appState = "hard-intro";
+      hardModeIntroStep = 0;
+      menu.classList.add("hidden");
+      quizContainer.classList.add("hidden");
+      hardModeIntro.classList.remove("hidden");
+      hardModeIntroText.innerText = hardModeIntroMessages[0];
+      applyHardModeStage(0);
+    }
+
+    function startGame() {
+      appState = "quiz";
+      hardModeIntro.classList.add("hidden");
+      menu.classList.add("hidden");
+      quizContainer.classList.remove("hidden");
+
+      if (mode === "normal") {
+        menuBtn.style.display = "block";
+      } else {
+        menuBtn.style.display = "none";
+      }
+
+      startQuiz();
+    }
+
+    function startQuiz() {
+      shuffledQuestions = shuffle([...questions]);
+      currentQuestionIndex = 0;
+      score = 0;
+      updateScore();
+      restartBtn.style.display = "none";
+      resultMessage.innerText = "";
+      bestScoreElement.innerText = mode === "hard" ? getBestHardScoreText() : "";
+      showQuestion();
+    }
+
+    function showQuestion() {
+      resetState();
+
+      const question = shuffledQuestions[currentQuestionIndex];
+      questionElement.innerText = question.question;
+      progressElement.innerText = `Question ${currentQuestionIndex + 1}/${shuffledQuestions.length}`;
+      resultMessage.innerText = "";
+      bestScoreElement.innerText = mode === "hard" ? getBestHardScoreText() : "";
+
+      const correctAnswer = question.correctAnswer;
+
+      const wrongAnswers = shuffle(
+        answerPool.filter(a => a !== correctAnswer)
+      ).slice(0, Math.min(3, answerPool.length - 1));
+
+      const finalAnswers = shuffle([
+        ...wrongAnswers.map(a => ({ text: a, correct: false })),
+        { text: correctAnswer, correct: true }
+      ]);
+
+      finalAnswers.forEach(answer => {
+        const button = document.createElement("button");
+        button.innerText = answer.text;
+        button.classList.add("btn");
+        if (answer.correct) button.dataset.correct = "true";
+        button.addEventListener("click", selectAnswer);
+        answersElement.appendChild(button);
+      });
+
+      startTimer();
+    }
+
+    function resetState() {
+      answersElement.innerHTML = "";
+      progressBar.style.width = "100%";
+      clearInterval(progressInterval);
+    }
+
+    function startTimer() {
+      let timeLeft = timePerQuestion;
+      progressBar.style.width = "100%";
+
+      progressInterval = setInterval(() => {
+        timeLeft -= 0.1;
+        const percent = (timeLeft / timePerQuestion) * 100;
+        progressBar.style.width = Math.max(percent, 0) + "%";
+
+        if (timeLeft <= 0) {
+          clearInterval(progressInterval);
+          autoFail();
+        }
+      }, 100);
+    }
+
+    function selectAnswer(e) {
+      clearInterval(progressInterval);
+
+      const selectedBtn = e.target;
+      const correct = selectedBtn.dataset.correct === "true";
+
+      if (correct) {
+        selectedBtn.classList.add("correct");
+        score++;
+        updateScore();
+      } else {
+        selectedBtn.classList.add("wrong");
+      }
+
+      Array.from(answersElement.children).forEach(button => {
+        if (button.dataset.correct === "true") {
+          button.classList.add("correct");
+        }
+        button.disabled = true;
+      });
+
+      if (!correct && mode === "hard") {
+        return setTimeout(showQuizComplete, 1000);
+      }
+
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function autoFail() {
+      Array.from(answersElement.children).forEach(button => {
+        if (button.dataset.correct === "true") {
+          button.classList.add("correct");
+        }
+        button.disabled = true;
+      });
+
+      if (mode === "hard") {
+        return setTimeout(showQuizComplete, 1000);
+      }
+
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < shuffledQuestions.length) {
+        showQuestion();
+      } else {
+        showQuizComplete();
+      }
+    }
+
+    function showQuizComplete() {
+      appState = "results";
+      clearInterval(progressInterval);
+      stopHeartbeat();
+
+      if (mode === "hard") {
+        saveBestHardScore(score);
+      }
+
+      questionElement.innerText = mode === "hard" ? "Game Over!" : "Quiz complete!";
+      answersElement.innerHTML = "";
+      progressElement.innerText = `Final Score: ${score}/${shuffledQuestions.length}`;
+      progressBar.style.width = "0%";
+      restartBtn.style.display = "block";
+      menuBtn.style.display = "none";
+
+      if (mode === "hard") {
+        resultMessage.innerText = "Is that the best you could do? The managers are disappointed...";
+        bestScoreElement.innerText = getBestHardScoreText();
+      } else {
+        resultMessage.innerText = "Nice work — back to the menu whenever you're ready.";
+        bestScoreElement.innerText = "";
+      }
+    }
+
+    function updateScore() {
+      scoreElement.innerText = `Score: ${score}`;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function getBestHardScore() {
+      return Number(localStorage.getItem("bestHardScore") || 0);
+    }
+
+    function saveBestHardScore(newScore) {
+      const currentBest = getBestHardScore();
+      if (newScore > currentBest) {
+        localStorage.setItem("bestHardScore", String(newScore));
+      }
+    }
+
+    function getBestHardScoreText() {
+      return `Best Hard Mode Score: ${getBestHardScore()}`;
+    }
+
+    function returnToMenu() {
+      appState = "menu";
+      clearInterval(progressInterval);
+      stopHeartbeat();
+
+      answersElement.innerHTML = "";
+      progressBar.style.width = "0%";
+      questionElement.innerText = "Loading...";
+      progressElement.innerText = "";
+      scoreElement.innerText = "Score: 0";
+      restartBtn.style.display = "none";
+      menuBtn.style.display = "none";
+      resultMessage.innerText = "";
+      bestScoreElement.innerText = "";
+
+      hardModeIntro.classList.remove("shake");
+      clearHardModeStageClasses();
+
+      quizContainer.classList.add("hidden");
+      hardModeIntro.classList.add("hidden");
+      menu.classList.remove("hidden");
+    }
+
+    function switchScreen(fromEl, toEl, callback) {
+      if (fromEl) {
+        fromEl.classList.add("fading-out");
+      }
+
+      setTimeout(() => {
+        if (fromEl) {
+          fromEl.classList.remove("fading-out");
+          fromEl.classList.add("hidden");
+        }
+
+        if (toEl) {
+          toEl.classList.remove("hidden");
+        }
+
+        if (callback) {
+          callback();
+        }
+      }, 180);
+    }
+
+    menuBtn.addEventListener("click", returnToMenu);
+    restartBtn.addEventListener("click", returnToMenu);
+  </script>
+
+</body>
+</html>
