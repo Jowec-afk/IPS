@@ -1,9 +1,11 @@
-const CACHE_NAME = "revision-quiz-v1";
+const CACHE_NAME = "revision-quiz-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
   "./data.json",
-  "./manifest.json"
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", event => {
@@ -45,9 +47,7 @@ self.addEventListener("fetch", event => {
 
           return networkResponse;
         })
-        .catch(() => {
-          return caches.match("./index.html");
-        });
+        .catch(() => caches.match("./index.html"));
     })
   );
 });
