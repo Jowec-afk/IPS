@@ -742,6 +742,14 @@
       }, 180);
     }
 
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" })
+          .then(() => console.log("Service worker registered"))
+          .catch(err => console.error("Service worker registration failed:", err));
+      });
+    }
+
     menuBtn.addEventListener("click", returnToMenu);
     restartBtn.addEventListener("click", returnToMenu);
   </script>
