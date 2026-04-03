@@ -1,6 +1,6 @@
 {
-  "name": "Revision Quiz",
-  "short_name": "RevQuiz",
+  "name": "IPS Quiz",
+  "short_name": "IPS",
   "id": "/IPS/",
   "start_url": "./index.html",
   "scope": "/IPS/",
