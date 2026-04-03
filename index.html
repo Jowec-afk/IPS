@@ -114,14 +114,14 @@
     }
 
     #restart-btn,
-    #hardmode-continue-btn {
+    #hardmode-continue-btn,
+    #install-btn {
       display: none;
       width: 100%;
       min-height: 48px;
       padding: 12px 14px;
       border: none;
       border-radius: 8px;
-      background: #007bff;
       color: white;
       margin-top: 15px;
       cursor: pointer;
@@ -130,8 +130,18 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    #restart-btn,
+    #hardmode-continue-btn {
+      background: #007bff;
+    }
+
+    #install-btn {
+      background: #111214;
+    }
+
     #restart-btn:active,
-    #hardmode-continue-btn:active {
+    #hardmode-continue-btn:active,
+    #install-btn:active {
       transform: scale(0.98);
     }
 
@@ -261,6 +271,7 @@
     <h2>Select Mode</h2>
     <button class="btn" id="normal-mode" disabled>Normal Mode (5s)</button>
     <button class="btn" id="hard-mode" disabled>Hard Mode (3s, sudden death)</button>
+    <button id="install-btn" class="hidden">Install App</button>
     <div id="menu-status">Loading quiz data...</div>
   </div>
 
@@ -299,6 +310,8 @@
     let dataLoaded = false;
 
     let hardModeIntroStep = 0;
+    let deferredInstallPrompt = null;
+
     const hardModeIntroMessages = [
       "You're on IPS and hear footsteps approaching...",
       "A manager is now watching you...",
@@ -346,6 +359,7 @@
     const menuStatus = document.getElementById("menu-status");
     const normalModeBtn = document.getElementById("normal-mode");
     const hardModeBtn = document.getElementById("hard-mode");
+    const installBtn = document.getElementById("install-btn");
 
     const quizContainer = document.getElementById("quiz-container");
 
@@ -412,6 +426,29 @@
           startGame();
         });
       }
+    });
+
+    installBtn.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installBtn.classList.add("hidden");
+      installBtn.style.display = "none";
+    });
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      installBtn.classList.remove("hidden");
+      installBtn.style.display = "block";
+    });
+
+    window.addEventListener("appinstalled", () => {
+      deferredInstallPrompt = null;
+      installBtn.classList.add("hidden");
+      installBtn.style.display = "none";
     });
 
     async function initAudio() {
